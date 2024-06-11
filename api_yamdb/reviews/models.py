@@ -67,6 +67,7 @@ class Title(models.Model):
         blank=True,
         related_name='titles',
     )
+    rating = models.PositiveSmallIntegerField(default=0)
 
     def __str__(self):
         return self.name
@@ -106,6 +107,23 @@ class Review(models.Model):
         verbose_name_plural = 'Отзывы'
         unique_together = ['title', 'author']
         ordering = ('-pub_date',)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.update_title_rating()
+
+    def delete(self, *args, **kwargs):
+        super().delete(*args, **kwargs)
+        self.update_title_rating()
+
+    def update_title_rating(self):
+        average_rating = self.title.reviews.aggregate(
+            models.Avg('score'))['score__avg']
+        if average_rating is not None:
+            self.title.rating = round(average_rating)
+        else:
+            self.title.rating = 0
+        self.title.save()
 
 
 class Comment(models.Model):

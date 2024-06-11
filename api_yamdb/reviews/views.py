@@ -1,7 +1,11 @@
 from rest_framework import viewsets, permissions
 
-from reviews.models import Review, Comment
-from reviews.serializers import ReviewSerializer, CommentSerializer
+from reviews.models import Review, Comment, Title
+from reviews.serializers import (
+    ReviewSerializer,
+    CommentSerializer,
+    TitleSerializer
+)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -20,3 +24,8 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
+
+
+class TitleViewSet(viewsets.ModelViewSet):
+    queryset = Title.objects.all()
+    serializer_class = TitleSerializer
