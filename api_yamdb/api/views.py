@@ -44,3 +44,4 @@ class TitleViewSet(viewsets.ModelViewSet):
         if self.action in ('create', 'destroy', 'update', 'partial_update'):
             return TitleWriteSerializer
         return TitleReadSerializer
+
