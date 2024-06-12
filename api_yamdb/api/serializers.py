@@ -24,7 +24,6 @@ class TitleWriteSerializer(serializers.ModelSerializer):
     category = serializers.SlugRelatedField(
         slug_field='slug',
         queryset=Category.objects.all(),
-        required=False,
     )
     genre = serializers.SlugRelatedField(
         slug_field='slug',
@@ -32,37 +31,22 @@ class TitleWriteSerializer(serializers.ModelSerializer):
         many=True,
     )
 
+    def to_representation(self, instance):
+        return TitleReadSerializer(instance).data
+
     class Meta:
         model = Title
-        fields = (
-            'id',
-            'name',
-            'year',
-            'description',
-            'genre',
-            'category',
-        )
+        fields = ('id', 'name', 'year', 'description', 'genre', 'category')
 
 
 class TitleReadSerializer(serializers.ModelSerializer):
-    """Сериалайзер на чтение."""
+    """Сериализатор для возврата списка произведений."""
 
-    rating = serializers.IntegerField(read_only=True, default=None)
-
-    genre = GenreSerializer(
-        read_only=True,
-        many=True,
-    )
+    rating = serializers.IntegerField(read_only=True)
+    genre = GenreSerializer(read_only=True, many=True)
     category = CategorySerializer(read_only=True)
 
     class Meta:
         model = Title
-        fields = (
-            'id',
-            'name',
-            'year',
-            'rating',
-            'description',
-            'genre',
-            'category',
-        )
+        fields = ('id', 'name', 'year', 'rating', 'description',
+                  'genre', 'category',)

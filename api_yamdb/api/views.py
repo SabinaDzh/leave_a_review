@@ -1,15 +1,16 @@
 from rest_framework import viewsets, filters
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.permissions import (SAFE_METHODS)
 
 from reviews.models import Category, Genre, Title
-from .serializers import (
+from api.serializers import (
     CategorySerializer,
     GenreSerializer,
     TitleReadSerializer,
     TitleWriteSerializer
 )
-from .permissions import IsAdminOrReadOnly
-from .mixins import CreateListDestroyViewSet
+from api.permissions import IsAdminOrReadOnly
+from api.mixins import CreateListDestroyViewSet
 
 
 
@@ -18,30 +19,28 @@ class UsersViewSet(viewsets.ModelViewSet):
 
 
 class CategoryViewSet(CreateListDestroyViewSet):
+    """Viewset для категорий."""
+
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = (IsAdminOrReadOnly,)
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
 
 
 class GenreViewSet(CreateListDestroyViewSet):
+    """Viewset для жанров."""
+
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    permission_classes = (IsAdminOrReadOnly,)
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
 
 
 class TitleViewSet(viewsets.ModelViewSet):
+    """Viewset для произведений."""
     queryset = Title.objects.all()
     serializer_class = TitleReadSerializer
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('category__slug', 'genre__slug', 'name', 'year')
+    ordering_fields = ('name',)
 
     def get_serializer_class(self):
-        if self.action in ('create', 'destroy', 'update', 'partial_update'):
-            return TitleWriteSerializer
-        return TitleReadSerializer
-
+        if self.request.method in SAFE_METHODS:
+            return TitleReadSerializer
+        return TitleWriteSerializer
