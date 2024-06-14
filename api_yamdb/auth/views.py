@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
 from rest_framework import permissions
-from rest_framework import viewsets
+from rest_framework import status
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from .serializers import ConfirmationCodeSerializer, RegisterUserSerializer
@@ -16,6 +16,12 @@ class RegisterUserViewSet(CreateViewSet):
     queryset = User
     serializer_class = RegisterUserSerializer
     permission_classes = (permissions.AllowAny,)
+
+    def create(self, request, *args, **kwargs):
+        data = super().create(request, *args, **kwargs)
+        if data.status_code == status.HTTP_201_CREATED:
+            data.status_code = status.HTTP_200_OK
+        return data
 
 
 class ConfirmationCodeView(TokenObtainPairView):
