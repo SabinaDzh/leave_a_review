@@ -1,37 +1,56 @@
-import hashlib
-
 from django.contrib.auth import get_user_model
-from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
+from .functions import generate_confirmation_code, send_confirmation_code
+
 
 User = get_user_model()
-SENDER_EMAIL = 'auth@yamdb.com'
-
-
-def generate_confirmation_code(user):
-    """Генерация проверочного кода для пользователя"""
-    code = hashlib.md5(f'{user.date_joined}{user.id}'.encode())
-    return code.hexdigest()
 
 
 class RegisterUserSerializer(serializers.ModelSerializer):
     """Пользователь."""
+
+    username = serializers.RegexField(regex=r'^[\w.@+-]+\Z')
+    email = serializers.EmailField()
 
     class Meta:
         model = User
         fields = ('username', 'email')
 
     def create(self, validated_data):
-        user = User.objects.create(**validated_data)
-        code = generate_confirmation_code(user)
-        email_text = ('Код подтверждения регистрации: '
-                      f'{code}.')
-        send_mail('Регистрация на YAMDB', email_text, SENDER_EMAIL,
-                  (user.email,), fail_silently=False)
+        user = User.objects.filter(username=validated_data['username']).first()
+        if not user:
+            user = User.objects.create(**validated_data)
+        send_confirmation_code(user)
         return user
+
+    def validate(self, data):
+        user_same_email = User.objects.filter(email=data['email']).first()
+        user_same_username = User.objects.filter(
+            username=data['username']).first()
+        if (
+            user_same_username
+            and user_same_username.email != data['email']
+        ):
+            raise serializers.ValidationError(
+                'Пользователь с таким email уже существует!')
+        if (
+            user_same_email
+            and user_same_email.username != data['username']
+        ):
+            raise serializers.ValidationError(
+                'Пользователь с таким username уже существует!'
+            )
+        return super().validate(data)
+
+    def validate_username(self, data):
+        if data == 'me':
+            raise serializers.ValidationError(
+                'Нельзя указать "me" в поле username!'
+            )
+        return data
 
 
 class ConfirmationCodeSerializer(TokenObtainPairSerializer):
