@@ -13,7 +13,6 @@ from api.permissions import IsAdminOrReadOnly
 from api.mixins import CreateListDestroyViewSet
 
 
-
 class UsersViewSet(viewsets.ModelViewSet):
     pass
 
