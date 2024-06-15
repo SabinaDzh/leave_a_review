@@ -9,3 +9,8 @@ class CreateListDestroyViewSet(
     viewsets.GenericViewSet
 ):
     pass
+
+
+class GetPostPatchDeleteViewSet(viewsets.ModelViewSet):
+    """Разрешенные методы: GET, POST, PATCH, DELETE"""
+    http_method_names = ['get', 'post', 'patch', 'delete']
