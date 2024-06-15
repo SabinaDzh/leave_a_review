@@ -14,10 +14,10 @@ router_v1.register('categories', CategoryViewSet, basename='categories')
 router_v1.register('genres', GenreViewSet, basename='genres')
 router_v1.register('titles', TitleViewSet, basename='titles')
 router_v1.register(r'titles\/(?P<title_id>.+?)\/reviews',
-                   ReviewViewSet, 'reviews')
+                   ReviewViewSet, basename='reviews')
 router_v1.register(
     r'titles\/(?P<title_id>.+?)\/reviews\/(?P<review_id>.+?)/comments',
-    CommentViewSet, 'reviews')
+    CommentViewSet, basename='comments')
 router_v1.register('users', UserViewSet, basename='users')
 
 
