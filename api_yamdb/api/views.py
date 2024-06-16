@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from django.db.models import Avg
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, permissions, status
+from rest_framework import filters, permissions, serializers, status
 from rest_framework.decorators import action
 from rest_framework.permissions import (SAFE_METHODS)
 from rest_framework.response import Response
@@ -33,6 +33,10 @@ class CategoryViewSet(CreateListDestroyViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = (IsAdminOrReadOnly,)
+    pagination_class = Pagination
+    lookup_field = 'slug'
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
 
 
 class GenreViewSet(CreateListDestroyViewSet):
@@ -41,6 +45,10 @@ class GenreViewSet(CreateListDestroyViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     permission_classes = (IsAdminOrReadOnly,)
+    pagination_class = Pagination
+    lookup_field = 'slug'
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
 
 
 class TitleViewSet(GetPostPatchDeleteViewSet):
@@ -48,6 +56,7 @@ class TitleViewSet(GetPostPatchDeleteViewSet):
     queryset = Title.objects.all().annotate(Avg('reviews__score'))
     serializer_class = TitleReadSerializer
     permission_classes = (IsAdminOrReadOnly,)
+    pagination_class = Pagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleViewSetFilter
     ordering_fields = ('name',)
@@ -72,10 +81,22 @@ class ReviewViewSet(GetPostPatchDeleteViewSet):
 
     def perform_create(self, serializer):
         current_title = self.get_title()
+
+        if current_title:
+            review = Review.objects.filter(
+                author=self.request.user,
+                title=current_title)
+            if review:
+                raise serializers.ValidationError(
+                    'Вы уже оставили отзыв для этого произведения!')
+
         serializer.save(author=self.request.user, title=current_title)
 
     def partial_update(self, request, *args, **kwargs):
         instance = Review.objects.get(pk=kwargs['pk'])
+
+        self.check_object_permissions(self.request, instance)
+
         serializer = self.serializer_class(instance, data=request.data,
                                            partial=True)
         serializer.is_valid(raise_exception=True)

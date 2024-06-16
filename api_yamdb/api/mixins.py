@@ -5,7 +5,6 @@ from rest_framework.response import Response
 class CreateListDestroyViewSet(
     mixins.CreateModelMixin,
     mixins.ListModelMixin,
-    mixins.RetrieveModelMixin,
     mixins.DestroyModelMixin,
     viewsets.GenericViewSet
 ):

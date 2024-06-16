@@ -56,7 +56,6 @@ class Title(models.Model):
     year = models.IntegerField(
         verbose_name='Год выпуска произведения',
         validators=[validate_year],
-
     )
     description = models.TextField(
         verbose_name='Описание произведения',
@@ -76,7 +75,7 @@ class Title(models.Model):
         blank=True,
         related_name='titles',
     )
-    rating = models.PositiveSmallIntegerField(default=0)
+    rating = models.PositiveSmallIntegerField(blank=True, null=True)
 
     def __str__(self):
         return self.name
@@ -149,7 +148,7 @@ class Review(models.Model):
         if average_rating is not None:
             self.title.rating = round(average_rating)
         else:
-            self.title.rating = 0
+            self.title.rating = None
         self.title.save()
 
 
@@ -176,4 +175,3 @@ class Comment(models.Model):
         ordering = ('-pub_date',)
         verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментарии'
-
