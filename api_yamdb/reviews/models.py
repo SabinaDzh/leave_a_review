@@ -44,6 +44,7 @@ class Genre(models.Model):
     class Meta:
         verbose_name = 'Жанр'
         verbose_name_plural = 'Жанры'
+        ordering = ['name']
 
 
 class Title(models.Model):
@@ -55,15 +56,16 @@ class Title(models.Model):
     year = models.IntegerField(
         verbose_name='Год выпуска произведения',
         validators=[validate_year],
-
     )
     description = models.TextField(
         verbose_name='Описание произведения',
+        blank=True,
         null=True,
     )
     genre = models.ManyToManyField(
         Genre,
         through='GenreTitle',
+        verbose_name='Жанр',
     )
     category = models.ForeignKey(
         Category,
@@ -73,7 +75,7 @@ class Title(models.Model):
         blank=True,
         related_name='titles',
     )
-    rating = models.PositiveSmallIntegerField(default=0)
+    rating = models.PositiveSmallIntegerField(blank=True, null=True)
 
     def __str__(self):
         return self.name
@@ -85,13 +87,16 @@ class Title(models.Model):
 
 
 class GenreTitle(models.Model):
+    """Модель связи жанров и произведений."""
     genre = models.ForeignKey(
         Genre,
         on_delete=models.CASCADE,
+        related_name='genre',
     )
     title = models.ForeignKey(
         Title,
         on_delete=models.CASCADE,
+        related_name='titles',
     )
 
     def __str__(self):
@@ -143,7 +148,7 @@ class Review(models.Model):
         if average_rating is not None:
             self.title.rating = round(average_rating)
         else:
-            self.title.rating = 0
+            self.title.rating = None
         self.title.save()
 
 
@@ -170,4 +175,3 @@ class Comment(models.Model):
         ordering = ('-pub_date',)
         verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментарии'
-
