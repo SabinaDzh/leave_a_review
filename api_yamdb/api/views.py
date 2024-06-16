@@ -17,10 +17,11 @@ from api.serializers import (
 from api.permissions import (IsAdminOrReadOnly, IsAdminRole,
                              IsAuthorAdminModeratorOrReadOnly)
 from api.filters import TitleViewSetFilter
-from api.mixins import CreateListDestroyViewSet, GetPostPatchDeleteViewSet
+from api.mixins import (CreateListDestroyViewSet,
+                        GetPostPatchDeleteViewSet)
 from reviews.serializers import ReviewSerializer, CommentSerializer
 from users.serializers import UserSerializer
-from users.pagination import UsersPagination
+from .pagination import Pagination
 
 
 User = get_user_model()
@@ -61,16 +62,25 @@ class ReviewViewSet(GetPostPatchDeleteViewSet):
 
     serializer_class = ReviewSerializer
     permission_classes = (IsAuthorAdminModeratorOrReadOnly,)
+    pagination_class = Pagination
 
     def get_title(self):
         return get_object_or_404(Title, pk=self.kwargs['title_id'])
 
     def get_queryset(self):
-        return self.get_title().reviews
+        return self.get_title().reviews.all()
 
     def perform_create(self, serializer):
         current_title = self.get_title()
         serializer.save(author=self.request.user, title=current_title)
+
+    def partial_update(self, request, *args, **kwargs):
+        instance = Review.objects.get(pk=kwargs['pk'])
+        serializer = self.serializer_class(instance, data=request.data,
+                                           partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
 
 
 class CommentViewSet(GetPostPatchDeleteViewSet):
@@ -91,7 +101,7 @@ class UserViewSet(GetPostPatchDeleteViewSet):
 
     filter_backends = (filters.SearchFilter,)
 
-    pagination_class = UsersPagination
+    pagination_class = Pagination
     permission_classes = (IsAdminRole,)
     search_fields = ('username',)
 
