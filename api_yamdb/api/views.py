@@ -108,9 +108,14 @@ class CommentViewSet(GetPostPatchDeleteViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
     permission_classes = (IsAuthorAdminModeratorOrReadOnly,)
+    pagination_class = Pagination
+
+    def get_review(self):
+        return get_object_or_404(Review, pk=self.kwargs['review_id'])
 
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+        current_review = self.get_review()
+        serializer.save(author=self.request.user, review=current_review)
 
 
 class UserViewSet(GetPostPatchDeleteViewSet):
