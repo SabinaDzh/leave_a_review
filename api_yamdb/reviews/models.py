@@ -44,6 +44,7 @@ class Genre(models.Model):
     class Meta:
         verbose_name = 'Жанр'
         verbose_name_plural = 'Жанры'
+        ordering = ['name']
 
 
 class Title(models.Model):
@@ -59,11 +60,13 @@ class Title(models.Model):
     )
     description = models.TextField(
         verbose_name='Описание произведения',
+        blank=True,
         null=True,
     )
     genre = models.ManyToManyField(
         Genre,
         through='GenreTitle',
+        verbose_name='Жанр',
     )
     category = models.ForeignKey(
         Category,
@@ -85,13 +88,16 @@ class Title(models.Model):
 
 
 class GenreTitle(models.Model):
+    """Модель связи жанров и произведений."""
     genre = models.ForeignKey(
         Genre,
         on_delete=models.CASCADE,
+        related_name='genre',
     )
     title = models.ForeignKey(
         Title,
         on_delete=models.CASCADE,
+        related_name='titles',
     )
 
     def __str__(self):

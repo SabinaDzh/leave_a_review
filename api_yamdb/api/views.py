@@ -1,7 +1,8 @@
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
-from rest_framework import filters, permissions, status
+from django.db.models import Avg
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, permissions, status
 from rest_framework.decorators import action
 from rest_framework.permissions import (SAFE_METHODS)
 from rest_framework.response import Response
@@ -15,6 +16,7 @@ from api.serializers import (
 )
 from api.permissions import (IsAdminOrReadOnly, IsAdminRole,
                              IsAuthorAdminModeratorOrReadOnly)
+from api.filters import TitleViewSetFilter
 from api.mixins import CreateListDestroyViewSet, GetPostPatchDeleteViewSet
 from reviews.serializers import ReviewSerializer, CommentSerializer
 from users.serializers import UserSerializer
@@ -42,10 +44,11 @@ class GenreViewSet(CreateListDestroyViewSet):
 
 class TitleViewSet(GetPostPatchDeleteViewSet):
     """Viewset для произведений."""
-    queryset = Title.objects.all()
+    queryset = Title.objects.all().annotate(Avg('reviews__score'))
     serializer_class = TitleReadSerializer
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
+    filterset_class = TitleViewSetFilter
     ordering_fields = ('name',)
 
     def get_serializer_class(self):
