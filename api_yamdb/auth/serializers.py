@@ -3,10 +3,8 @@ from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
-from .functions import generate_confirmation_code, send_confirmation_code
-
-
-User = get_user_model()
+from auth.functions import generate_confirmation_code, send_confirmation_code
+from users.models import User
 
 
 class RegisterUserSerializer(serializers.ModelSerializer):

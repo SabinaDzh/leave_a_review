@@ -3,11 +3,9 @@ from rest_framework import permissions
 from rest_framework import status
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from .serializers import ConfirmationCodeSerializer, RegisterUserSerializer
-from .viewsets import CreateViewSet
-
-
-User = get_user_model()
+from auth.serializers import ConfirmationCodeSerializer, RegisterUserSerializer
+from auth.viewsets import CreateViewSet
+from users.models import User
 
 
 class RegisterUserViewSet(CreateViewSet):

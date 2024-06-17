@@ -1,4 +1,3 @@
-from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from django.db.models import Avg
 from django_filters.rest_framework import DjangoFilterBackend
@@ -7,24 +6,22 @@ from rest_framework.decorators import action
 from rest_framework.permissions import (SAFE_METHODS)
 from rest_framework.response import Response
 
-from reviews.models import Category, Comment, Genre, Review, Title
 from api.serializers import (
     CategorySerializer,
     GenreSerializer,
     TitleReadSerializer,
     TitleWriteSerializer
 )
-from api.permissions import (IsAdminOrReadOnly, IsAdminRole,
-                             IsAuthorAdminModeratorOrReadOnly)
 from api.filters import TitleViewSetFilter
 from api.mixins import (CreateListDestroyViewSet,
                         GetPostPatchDeleteViewSet)
+from api.pagination import Pagination
+from api.permissions import (IsAdminOrReadOnly, IsAdminRole,
+                             IsAuthorAdminModeratorOrReadOnly)
+from reviews.models import Category, Comment, Genre, Review, Title
 from reviews.serializers import ReviewSerializer, CommentSerializer
+from users.models import User
 from users.serializers import UserSerializer
-from .pagination import Pagination
-
-
-User = get_user_model()
 
 
 class CategoryViewSet(CreateListDestroyViewSet):
