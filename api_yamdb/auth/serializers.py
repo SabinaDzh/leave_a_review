@@ -24,6 +24,7 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         return user
 
     def validate(self, data):
+
         user_same_email = User.objects.filter(email=data['email']).first()
         user_same_username = User.objects.filter(
             username=data['username']).first()
@@ -40,12 +41,20 @@ class RegisterUserSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 'Пользователь с таким username уже существует!'
             )
+        if len(data['email']) > 254:
+            raise serializers.ValidationError(
+                'Поле "email" должно быть до 254 символов'
+            )
         return super().validate(data)
 
     def validate_username(self, data):
         if data == 'me':
             raise serializers.ValidationError(
                 'Нельзя указать "me" в поле username!'
+            )
+        if len(data) > 150:
+            raise serializers.ValidationError(
+                'Поле "username" должно быть до 150 символов'
             )
         return data
 
