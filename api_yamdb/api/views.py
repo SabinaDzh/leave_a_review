@@ -6,18 +6,18 @@ from rest_framework.decorators import action
 from rest_framework.permissions import (SAFE_METHODS)
 from rest_framework.response import Response
 
-from api.serializers import (
-    CategorySerializer,
-    GenreSerializer,
-    TitleReadSerializer,
-    TitleWriteSerializer
-)
 from api.filters import TitleViewSetFilter
 from api.mixins import (CreateListDestroyViewSet,
                         GetPostPatchDeleteViewSet)
 from api.pagination import Pagination
 from api.permissions import (IsAdminOrReadOnly, IsAdminRole,
                              IsAuthorAdminModeratorOrReadOnly)
+from api.serializers import (
+    CategorySerializer,
+    GenreSerializer,
+    TitleReadSerializer,
+    TitleWriteSerializer
+)
 from reviews.models import Category, Comment, Genre, Review, Title
 from reviews.serializers import ReviewSerializer, CommentSerializer
 from users.models import User
