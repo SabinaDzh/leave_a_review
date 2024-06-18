@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 
+from django.db.models import Avg
+
 from reviews.models import Title, Category, Genre
 
 User = get_user_model()
@@ -53,7 +55,7 @@ class TitleWriteSerializer(serializers.ModelSerializer):
 class TitleReadSerializer(serializers.ModelSerializer):
     """Сериализатор для возврата списка произведений."""
 
-    rating = serializers.IntegerField(read_only=True)
+    rating = Title.objects.all().annotate(Avg('reviews__score'))
     genre = GenreSerializer(read_only=True, many=True)
     category = CategorySerializer(read_only=True)
 
