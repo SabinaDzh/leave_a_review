@@ -4,7 +4,7 @@ from rest_framework_simplejwt.serializers import TokenObtainSerializer
 from rest_framework_simplejwt.tokens import AccessToken
 
 from auth.functions import generate_confirmation_code, send_confirmation_code
-from users.models import User
+from users.models import User, username_me_validator
 
 
 class RegisterUserSerializer(serializers.Serializer):
@@ -51,10 +51,7 @@ class RegisterUserSerializer(serializers.Serializer):
         return super().validate(data)
 
     def validate_username(self, data):
-        if data == 'me':
-            raise serializers.ValidationError(
-                'Нельзя указать "me" в поле username!'
-            )
+        username_me_validator(data)
         return data
 
 
