@@ -47,7 +47,6 @@ class RegisterUserSerializer(serializers.Serializer):
 
             raise serializers.ValidationError(error_messages)
 
-            )
         return super().validate(data)
 
     def validate_username(self, data):
