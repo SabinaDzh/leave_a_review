@@ -16,12 +16,12 @@ from api.serializers import (
     CategorySerializer,
     GenreSerializer,
     TitleReadSerializer,
-    TitleWriteSerializer
+    TitleWriteSerializer,
+    UserSerializer
 )
 from reviews.models import Category, Comment, Genre, Review, Title
 from reviews.serializers import ReviewSerializer, CommentSerializer
 from users.models import User
-from users.serializers import UserSerializer
 
 
 class CategoryViewSet(CreateListDestroyViewSet):
