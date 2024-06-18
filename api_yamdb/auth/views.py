@@ -1,6 +1,7 @@
 from rest_framework import permissions
 from rest_framework import status
-from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework import views
+from rest_framework.response import Response
 
 from auth.serializers import ConfirmationCodeSerializer, RegisterUserSerializer
 from auth.viewsets import CreateViewSet
@@ -21,7 +22,24 @@ class RegisterUserViewSet(CreateViewSet):
         return data
 
 
-class ConfirmationCodeView(TokenObtainPairView):
+class ConfirmationCodeView(views.APIView):
     """Подтверждение регистрации и получение токена"""
     serializer_class = ConfirmationCodeSerializer
-    token_obtain_pair = TokenObtainPairView.as_view()
+    permission_classes = (permissions.AllowAny,)
+
+    def post(self, request: views.Request, *args, **kwargs):
+
+        serializer = self.serializer_class(data=request.data)
+
+        if serializer.is_valid():
+            user = User.objects.get(
+                username=serializer.validated_data['username'])
+            serializer.validated_data['token'] = (
+                str(serializer.get_token(user)))
+            del serializer.validated_data['username']
+            del serializer.validated_data['confirmation_code']
+            return Response(serializer.validated_data,
+                            status=status.HTTP_200_OK)
+
+        return Response(serializer.error_messages,
+                        status=status.HTTP_400_BAD_REQUEST)

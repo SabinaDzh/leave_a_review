@@ -1,6 +1,7 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.serializers import TokenObtainSerializer
+from rest_framework_simplejwt.tokens import AccessToken
 
 from auth.functions import generate_confirmation_code, send_confirmation_code
 from users.models import User
@@ -9,7 +10,7 @@ from users.models import User
 class RegisterUserSerializer(serializers.Serializer):
     """Пользователь."""
 
-    username = serializers.RegexField(regex=r'^[\w.@+-]+\Z')
+    username = serializers.RegexField(regex=r'^[\w.@+-]+\Z', max_length=150)
     email = serializers.EmailField(
         max_length=254,
     )
@@ -54,30 +55,24 @@ class RegisterUserSerializer(serializers.Serializer):
             raise serializers.ValidationError(
                 'Нельзя указать "me" в поле username!'
             )
-        if len(data) > 150:
-            raise serializers.ValidationError(
-                'Поле "username" должно быть до 150 символов'
-            )
         return data
 
 
-class ConfirmationCodeSerializer(TokenObtainPairSerializer):
+class ConfirmationCodeSerializer(TokenObtainSerializer):
     """Подтверждение кода регистрации и генерация токена."""
+
+    token_class = AccessToken
+    confirmation_code = serializers.CharField()
+    username = serializers.CharField()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         del self.fields['password']
 
     def validate(self, data):
-        user = get_object_or_404(User, username=data.get('username'))
+        user = get_object_or_404(User, username=data['username'])
         code = generate_confirmation_code(user)
-        request = self.context.get('request')
-        sent_code = request.data.get('confirmation_code')
-        if code != sent_code:
+        if code != data['confirmation_code']:
             raise serializers.ValidationError('Неверный проверочный код!')
-
-        refresh = self.get_token(user)
-        data['token'] = str(refresh.access_token)
-        del data['username']
 
         return data

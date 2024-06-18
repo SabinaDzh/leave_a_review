@@ -9,5 +9,5 @@ router.register('signup', RegisterUserViewSet, 'signup')
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('token/', ConfirmationCodeView.as_view(), name='token_obtain_pair'),
+    path('token/', ConfirmationCodeView.as_view(), name='token_obtain'),
 ]
