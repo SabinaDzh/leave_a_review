@@ -6,7 +6,7 @@ from auth.functions import generate_confirmation_code, send_confirmation_code
 from users.models import User
 
 
-class RegisterUserSerializer(serializers.ModelSerializer):
+class RegisterUserSerializer(serializers.Serializer):
     """Пользователь."""
 
     username = serializers.RegexField(regex=r'^[\w.@+-]+\Z')
@@ -17,9 +17,8 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         fields = ('username', 'email')
 
     def create(self, validated_data):
-        user = User.objects.filter(username=validated_data['username']).first()
-        if not user:
-            user = User.objects.create(**validated_data)
+        user, _ = User.objects.get_or_create(
+            username=validated_data['username'], defaults=validated_data)
         send_confirmation_code(user)
         return user
 
