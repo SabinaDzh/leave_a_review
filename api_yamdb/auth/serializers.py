@@ -27,19 +27,24 @@ class RegisterUserSerializer(serializers.Serializer):
         user_same_email = User.objects.filter(email=data['email']).first()
         user_same_username = User.objects.filter(
             username=data['username']).first()
-        if (
-            user_same_username
-            and user_same_username.email != data['email']
-        ):
-            raise serializers.ValidationError(
-                'Пользователь с таким email уже существует!')
-        if (
-            user_same_email
-            and user_same_email.username != data['username']
-        ):
-            raise serializers.ValidationError(
-                'Пользователь с таким username уже существует!'
-            )
+
+        if user_same_email != user_same_username:
+
+            message_template = (
+                'Пользователь с таким {field_name} уже существует!')
+
+            error_messages_dict = {
+                key: value for key, value in zip(
+                    ['username', 'email'],
+                    [user_same_username, user_same_email])
+            }
+
+            error_messages = [
+                message_template.format(field_name=key)
+                for key, value in error_messages_dict.items() if value]
+
+            raise serializers.ValidationError(error_messages)
+
         if len(data['email']) > 254:
             raise serializers.ValidationError(
                 'Поле "email" должно быть до 254 символов'
