@@ -10,7 +10,9 @@ class RegisterUserSerializer(serializers.Serializer):
     """Пользователь."""
 
     username = serializers.RegexField(regex=r'^[\w.@+-]+\Z')
-    email = serializers.EmailField()
+    email = serializers.EmailField(
+        max_length=254,
+    )
 
     class Meta:
         model = User
@@ -45,9 +47,6 @@ class RegisterUserSerializer(serializers.Serializer):
 
             raise serializers.ValidationError(error_messages)
 
-        if len(data['email']) > 254:
-            raise serializers.ValidationError(
-                'Поле "email" должно быть до 254 символов'
             )
         return super().validate(data)
 
