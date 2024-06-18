@@ -1,6 +1,7 @@
 from rest_framework import serializers
-from users.models import User
+from django.contrib.auth import get_user_model
 
+User = get_user_model()
 
 class UserSerializer(serializers.ModelSerializer):
     """Пользователь"""
@@ -12,6 +13,4 @@ class UserSerializer(serializers.ModelSerializer):
         lookup_field = 'username'
         extra_kwargs = {
             'url': {'lookup_field': 'username'},
-            'email': {'max_length': 254},
-            'username': {'max_length': 150},
         }
