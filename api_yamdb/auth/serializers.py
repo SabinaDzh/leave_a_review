@@ -6,11 +6,13 @@ from auth.functions import generate_confirmation_code, send_confirmation_code
 from users.models import User
 
 
-class RegisterUserSerializer(serializers.ModelSerializer):
+class RegisterUserSerializer(serializers.Serializer):
     """Пользователь."""
 
     username = serializers.RegexField(regex=r'^[\w.@+-]+\Z')
-    email = serializers.EmailField()
+    email = serializers.EmailField(
+        max_length=254,
+    )
 
     class Meta:
         model = User
@@ -28,22 +30,9 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         user_same_email = User.objects.filter(email=data['email']).first()
         user_same_username = User.objects.filter(
             username=data['username']).first()
-        if (
-            user_same_username
-            and user_same_username.email != data['email']
-        ):
-            raise serializers.ValidationError(
-                'Пользователь с таким email уже существует!')
-        if (
-            user_same_email
-            and user_same_email.username != data['username']
-        ):
+        if (user_same_email != user_same_username):
             raise serializers.ValidationError(
                 'Пользователь с таким username уже существует!'
-            )
-        if len(data['email']) > 254:
-            raise serializers.ValidationError(
-                'Поле "email" должно быть до 254 символов'
             )
         return super().validate(data)
 
