@@ -42,6 +42,8 @@ class TitleWriteSerializer(serializers.ModelSerializer):
         slug_field='slug',
         queryset=Genre.objects.all(),
         many=True,
+        allow_null=False,
+        allow_empty=False,
     )
 
     def to_representation(self, instance):
@@ -55,7 +57,7 @@ class TitleWriteSerializer(serializers.ModelSerializer):
 class TitleReadSerializer(serializers.ModelSerializer):
     """Сериализатор для возврата списка произведений."""
 
-    rating = Title.objects.all().annotate(Avg('reviews__score'))
+    rating = serializers.IntegerField(read_only=True, default=None)
     genre = GenreSerializer(read_only=True, many=True)
     category = CategorySerializer(read_only=True)
 

@@ -1,4 +1,7 @@
-from rest_framework import mixins, viewsets
+from rest_framework import mixins, viewsets, filters
+
+from api.permissions import IsAdminOrReadOnly
+from api.pagination import Pagination
 
 
 class CreateListDestroyViewSet(
@@ -7,7 +10,11 @@ class CreateListDestroyViewSet(
     mixins.DestroyModelMixin,
     viewsets.GenericViewSet
 ):
-    pass
+    """Миксин для Category/Genre ViewSet."""
+    permission_classes = (IsAdminOrReadOnly,)
+    filter_backends = [filters.SearchFilter]
+    search_fields = ('name',)
+    lookup_field = 'slug'
 
 
 class GetPostPatchDeleteViewSet(viewsets.ModelViewSet):
