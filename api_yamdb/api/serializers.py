@@ -1,8 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 
-from django.db.models import Avg
-
 from reviews.models import Title, Category, Genre
 
 User = get_user_model()
