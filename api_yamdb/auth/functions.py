@@ -2,8 +2,7 @@ import hashlib
 
 from django.core.mail import send_mail
 
-
-SENDER_EMAIL = 'auth@yamdb.com'
+from api_yamdb.settings import SENDER_EMAIL
 
 
 def generate_confirmation_code(user):

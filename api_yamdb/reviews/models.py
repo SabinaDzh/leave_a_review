@@ -2,6 +2,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from users.models import User
 
+from reviews.constants import MAX_LENGTH_NAME, MAX_LENGTH_SLUG
 from reviews.validators import validate_year
 
 
@@ -9,11 +10,11 @@ class Category(models.Model):
     """Модель категории произведения."""
     name = models.CharField(
         verbose_name='Название категории',
-        max_length=256,
+        max_length=MAX_LENGTH_NAME,
     )
     slug = models.SlugField(
         verbose_name='Слаг категории',
-        max_length=50,
+        max_length=MAX_LENGTH_SLUG,
         unique=True,
     )
 
@@ -23,18 +24,18 @@ class Category(models.Model):
     class Meta:
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
-        ordering = ['name']
+        ordering = ('name',)
 
 
 class Genre(models.Model):
     """Модель жанра произведений."""
     name = models.CharField(
         verbose_name='Название жанра',
-        max_length=256,
+        max_length=MAX_LENGTH_NAME,
     )
     slug = models.SlugField(
         verbose_name='Слаг жанра',
-        max_length=50,
+        max_length=MAX_LENGTH_SLUG,
         unique=True,
     )
 
@@ -44,18 +45,18 @@ class Genre(models.Model):
     class Meta:
         verbose_name = 'Жанр'
         verbose_name_plural = 'Жанры'
-        ordering = ['name']
+        ordering = ('name',)
 
 
 class Title(models.Model):
     """Модель произведения."""
     name = models.CharField(
         verbose_name='Название произведения',
-        max_length=256,
+        max_length=MAX_LENGTH_NAME,
     )
     year = models.IntegerField(
         verbose_name='Год выпуска произведения',
-        validators=[validate_year],
+        validators=(validate_year,),
     )
     description = models.TextField(
         verbose_name='Описание произведения',
@@ -71,19 +72,18 @@ class Title(models.Model):
         Category,
         verbose_name='Категория произведения',
         on_delete=models.SET_NULL,
-        null=True,
         blank=True,
+        null=True,
         related_name='titles',
     )
-    rating = models.PositiveSmallIntegerField(blank=True, null=True)
-
-    def __str__(self):
-        return self.name
 
     class Meta:
         verbose_name = 'Произведение'
         verbose_name_plural = 'Произведения'
-        ordering = ['name']
+        ordering = ('name',)
+
+    def __str__(self):
+        return self.name
 
 
 class GenreTitle(models.Model):
@@ -131,7 +131,11 @@ class Review(models.Model):
     class Meta:
         verbose_name = 'Отзыв'
         verbose_name_plural = 'Отзывы'
-        unique_together = ['title', 'author']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['title', 'author'],
+                name='unique_title_author')
+        ]
         ordering = ('-pub_date',)
 
     def save(self, *args, **kwargs):
@@ -150,6 +154,9 @@ class Review(models.Model):
         else:
             self.title.rating = None
         self.title.save()
+
+    def __str__(self):
+        return f"Отзыв от {self.author} о {self.title}"
 
 
 class Comment(models.Model):
@@ -175,3 +182,6 @@ class Comment(models.Model):
         ordering = ('-pub_date',)
         verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментарии'
+
+    def __str__(self):
+        return f"Коссентарий от {self.author} для {self.review}"

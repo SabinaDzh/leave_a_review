@@ -9,19 +9,18 @@ from rest_framework.response import Response
 from api.filters import TitleViewSetFilter
 from api.mixins import (CreateListDestroyViewSet,
                         GetPostPatchDeleteViewSet)
-from api.pagination import Pagination
 from api.permissions import (IsAdminOrReadOnly, IsAdminRole,
                              IsAuthorAdminModeratorOrReadOnly)
 from api.serializers import (
     CategorySerializer,
     GenreSerializer,
     TitleReadSerializer,
-    TitleWriteSerializer
+    TitleWriteSerializer,
+    UserSerializer
 )
 from reviews.models import Category, Comment, Genre, Review, Title
 from reviews.serializers import ReviewSerializer, CommentSerializer
 from users.models import User
-from users.serializers import UserSerializer
 
 
 class CategoryViewSet(CreateListDestroyViewSet):
@@ -29,11 +28,6 @@ class CategoryViewSet(CreateListDestroyViewSet):
 
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = (IsAdminOrReadOnly,)
-    pagination_class = Pagination
-    lookup_field = 'slug'
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
 
 
 class GenreViewSet(CreateListDestroyViewSet):
@@ -41,22 +35,16 @@ class GenreViewSet(CreateListDestroyViewSet):
 
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    permission_classes = (IsAdminOrReadOnly,)
-    pagination_class = Pagination
-    lookup_field = 'slug'
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
 
 
 class TitleViewSet(GetPostPatchDeleteViewSet):
     """Viewset для произведений."""
-    queryset = Title.objects.all().annotate(Avg('reviews__score'))
+    queryset = Title.objects.annotate(
+        rating=Avg('reviews__score')).order_by('name')
     serializer_class = TitleReadSerializer
     permission_classes = (IsAdminOrReadOnly,)
-    pagination_class = Pagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleViewSetFilter
-    ordering_fields = ('name',)
 
     def get_serializer_class(self):
         if self.request.method in SAFE_METHODS:
@@ -68,7 +56,6 @@ class ReviewViewSet(GetPostPatchDeleteViewSet):
 
     serializer_class = ReviewSerializer
     permission_classes = (IsAuthorAdminModeratorOrReadOnly,)
-    pagination_class = Pagination
 
     def get_title(self):
         return get_object_or_404(Title, pk=self.kwargs['title_id'])
@@ -105,7 +92,6 @@ class CommentViewSet(GetPostPatchDeleteViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
     permission_classes = (IsAuthorAdminModeratorOrReadOnly,)
-    pagination_class = Pagination
 
     def get_review(self):
         return get_object_or_404(Review, pk=self.kwargs['review_id'])
@@ -124,7 +110,6 @@ class UserViewSet(GetPostPatchDeleteViewSet):
 
     filter_backends = (filters.SearchFilter,)
 
-    pagination_class = Pagination
     permission_classes = (IsAdminRole,)
     search_fields = ('username',)
 

@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.contrib.auth.models import AbstractUser
 from django.db import models
@@ -14,6 +15,11 @@ username_validator = RegexValidator(
 )
 
 
+def username_me_validator(value):
+    if value == 'me':
+        raise ValidationError('Нельзя указать "me" в поле username!')
+
+
 class User(AbstractUser):
 
     USER = "user"
@@ -24,7 +30,7 @@ class User(AbstractUser):
         max_length=150,
         verbose_name='Ник пользователя',
         unique=True,
-        validators=[username_validator],
+        validators=[username_validator, username_me_validator],
     )
     email = models.EmailField(
         verbose_name='Электронная почта',
