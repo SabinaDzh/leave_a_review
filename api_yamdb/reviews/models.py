@@ -10,46 +10,38 @@ from reviews.constants import (
 from reviews.validators import validate_year
 
 
-class Category(models.Model):
-    """Модель категории произведения."""
+class BaseCategoryGenre(models.Model):
+    """Абстрактная модель для категорий и жанров."""
     name = models.CharField(
-        verbose_name='Название категории',
+        verbose_name='Название',
         max_length=MAX_LENGTH_NAME,
     )
     slug = models.SlugField(
-        verbose_name='Слаг категории',
+        verbose_name='Слаг',
         max_length=MAX_LENGTH_SLUG,
         unique=True,
     )
 
+    class Meta:
+        abstract = True
+        ordering = ('name',)
+
     def __str__(self):
         return self.name
 
-    class Meta:
+
+class Category(BaseCategoryGenre):
+    """Модель категории произведения."""
+    class Meta(BaseCategoryGenre.Meta):
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
-        ordering = ('name',)
 
 
-class Genre(models.Model):
+class Genre(BaseCategoryGenre):
     """Модель жанра произведений."""
-    name = models.CharField(
-        verbose_name='Название жанра',
-        max_length=MAX_LENGTH_NAME,
-    )
-    slug = models.SlugField(
-        verbose_name='Слаг жанра',
-        max_length=MAX_LENGTH_SLUG,
-        unique=True,
-    )
-
-    def __str__(self):
-        return self.name
-
-    class Meta:
+    class Meta(BaseCategoryGenre.Meta):
         verbose_name = 'Жанр'
         verbose_name_plural = 'Жанры'
-        ordering = ('name',)
 
 
 class Title(models.Model):
