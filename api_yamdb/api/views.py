@@ -77,17 +77,6 @@ class ReviewViewSet(GetPostPatchDeleteViewSet):
 
         serializer.save(author=self.request.user, title=current_title)
 
-    def partial_update(self, request, *args, **kwargs):
-        instance = Review.objects.get(pk=kwargs['pk'])
-
-        self.check_object_permissions(self.request, instance)
-
-        serializer = self.serializer_class(instance, data=request.data,
-                                           partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data)
-
 
 class CommentViewSet(GetPostPatchDeleteViewSet):
     queryset = Comment.objects.all()
@@ -96,6 +85,13 @@ class CommentViewSet(GetPostPatchDeleteViewSet):
 
     def get_review(self):
         return get_object_or_404(Review, pk=self.kwargs['review_id'])
+
+    def get_title(self):
+        return get_object_or_404(Title, pk=self.kwargs['title_id'])
+
+    def get_queryset(self):
+        review = self.get_review()
+        return Comment.objects.filter(review=review)
 
     def perform_create(self, serializer):
         current_review = self.get_review()
@@ -129,8 +125,6 @@ class UserViewSet(GetPostPatchDeleteViewSet):
 
         serializer = UserSerializer(user, data=request.data, partial=True)
 
-        if serializer.is_valid():
+        if serializer.is_valid(raise_exception=True):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
