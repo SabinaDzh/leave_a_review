@@ -2,7 +2,7 @@ import hashlib
 
 from django.core.mail import send_mail
 
-from api_yamdb.settings import SENDER_EMAIL
+from django.conf import settings
 
 
 def generate_confirmation_code(user):
@@ -15,5 +15,5 @@ def send_confirmation_code(user):
     """Отправка кода подтверждения"""
     code = generate_confirmation_code(user)
     email_text = (f'Код подтверждения регистрации: {code}.')
-    send_mail('Регистрация на YAMDB', email_text, SENDER_EMAIL,
+    send_mail('Регистрация на YAMDB', email_text, settings.SENDER_EMAIL,
               (user.email,), fail_silently=False)
