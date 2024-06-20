@@ -1,9 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 
-from django.db.models import Avg
-
-from reviews.models import Title, Category, Genre
+from reviews.models import Category, Comment, Genre, Review, Title
 
 User = get_user_model()
 
@@ -78,3 +76,19 @@ class UserSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'url': {'lookup_field': 'username'},
         }
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    author = serializers.StringRelatedField(read_only=True)
+
+    class Meta:
+        model = Review
+        fields = ('id', 'text', 'author', 'score', 'pub_date')
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    author = serializers.StringRelatedField(read_only=True)
+
+    class Meta:
+        model = Comment
+        fields = ('id', 'text', 'author', 'pub_date')

@@ -13,13 +13,14 @@ from api.permissions import (IsAdminOrReadOnly, IsAdminRole,
                              IsAuthorAdminModeratorOrReadOnly)
 from api.serializers import (
     CategorySerializer,
+    CommentSerializer,
     GenreSerializer,
+    ReviewSerializer,
     TitleReadSerializer,
     TitleWriteSerializer,
     UserSerializer
 )
 from reviews.models import Category, Comment, Genre, Review, Title
-from reviews.serializers import ReviewSerializer, CommentSerializer
 from users.models import User
 
 
