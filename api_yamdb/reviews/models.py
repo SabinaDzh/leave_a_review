@@ -141,23 +141,6 @@ class Review(models.Model):
         ]
         ordering = ('-pub_date',)
 
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        self.update_title_rating()
-
-    def delete(self, *args, **kwargs):
-        super().delete(*args, **kwargs)
-        self.update_title_rating()
-
-    def update_title_rating(self):
-        average_rating = self.title.reviews.aggregate(
-            models.Avg('score'))['score__avg']
-        if average_rating is not None:
-            self.title.rating = round(average_rating)
-        else:
-            self.title.rating = None
-        self.title.save()
-
     def __str__(self):
         return f"Отзыв от {self.author} о {self.title}"
 
