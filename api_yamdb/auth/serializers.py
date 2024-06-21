@@ -58,10 +58,6 @@ class RegisterUserSerializer(serializers.Serializer):
 
         return super().validate(data)
 
-    def validate_username(self, data):
-        username_me_validator(data)
-        return data
-
 
 class ConfirmationCodeSerializer(TokenObtainSerializer):
     """Подтверждение кода регистрации и генерация токена."""
