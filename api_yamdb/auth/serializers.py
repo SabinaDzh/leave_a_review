@@ -47,15 +47,12 @@ class RegisterUserSerializer(serializers.Serializer):
             message_template = (
                 'Пользователь с таким {field_name} уже существует!')
 
-            error_messages_dict = {
-                key: value for key, value in zip(
+            error_messages = {
+                key: [message_template.format(field_name=key)]
+                for key, value in zip(
                     ['username', 'email'],
-                    [user_same_username, user_same_email])
+                    [user_same_username, user_same_email]) if value
             }
-
-            error_messages = [
-                message_template.format(field_name=key)
-                for key, value in error_messages_dict.items() if value]
 
             raise serializers.ValidationError(error_messages)
 
