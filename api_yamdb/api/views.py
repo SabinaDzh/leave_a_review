@@ -122,12 +122,9 @@ class UserViewSet(GetPostPatchDeleteViewSet):
             serializer = self.get_serializer(user)
             return Response(serializer.data)
 
-        if 'role' in request.data and user.role != request.data['role']:
-            return Response(status=status.HTTP_400_BAD_REQUEST,
-                            data='Нельзя изменить роль пользователя!')
-
         serializer = UserSerializer(user, data=request.data, partial=True)
 
-        if serializer.is_valid(raise_exception=True):
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
+        serializer.is_valid(raise_exception=True)
+        serializer.validated_data['role'] = user.role
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
