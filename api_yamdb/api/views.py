@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from django.db.models import Avg
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, permissions, serializers, status
+from rest_framework import filters, permissions, status
 from rest_framework.decorators import action
 from rest_framework.permissions import (SAFE_METHODS)
 from rest_framework.response import Response
