@@ -1,9 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 
-from django.db.models import Avg
-
-from reviews.models import Title, Category, Genre
+from reviews.models import Category, Comment, Genre, Review, Title
 
 User = get_user_model()
 
@@ -42,6 +40,8 @@ class TitleWriteSerializer(serializers.ModelSerializer):
         slug_field='slug',
         queryset=Genre.objects.all(),
         many=True,
+        allow_null=False,
+        allow_empty=False,
     )
 
     def to_representation(self, instance):
@@ -55,7 +55,7 @@ class TitleWriteSerializer(serializers.ModelSerializer):
 class TitleReadSerializer(serializers.ModelSerializer):
     """Сериализатор для возврата списка произведений."""
 
-    rating = Title.objects.all().annotate(Avg('reviews__score'))
+    rating = serializers.IntegerField(read_only=True, default=None)
     genre = GenreSerializer(read_only=True, many=True)
     category = CategorySerializer(read_only=True)
 
@@ -76,3 +76,19 @@ class UserSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'url': {'lookup_field': 'username'},
         }
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    author = serializers.StringRelatedField(read_only=True)
+
+    class Meta:
+        model = Review
+        fields = ('id', 'text', 'author', 'score', 'pub_date')
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    author = serializers.StringRelatedField(read_only=True)
+
+    class Meta:
+        model = Comment
+        fields = ('id', 'text', 'author', 'pub_date')

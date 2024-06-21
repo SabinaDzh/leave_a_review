@@ -9,18 +9,18 @@ from rest_framework.response import Response
 from api.filters import TitleViewSetFilter
 from api.mixins import (CreateListDestroyViewSet,
                         GetPostPatchDeleteViewSet)
-from api.pagination import Pagination
 from api.permissions import (IsAdminOrReadOnly, IsAdminRole,
                              IsAuthorAdminModeratorOrReadOnly)
 from api.serializers import (
     CategorySerializer,
+    CommentSerializer,
     GenreSerializer,
+    ReviewSerializer,
     TitleReadSerializer,
     TitleWriteSerializer,
     UserSerializer
 )
 from reviews.models import Category, Comment, Genre, Review, Title
-from reviews.serializers import ReviewSerializer, CommentSerializer
 from users.models import User
 
 
@@ -29,11 +29,6 @@ class CategoryViewSet(CreateListDestroyViewSet):
 
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = (IsAdminOrReadOnly,)
-    pagination_class = Pagination
-    lookup_field = 'slug'
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
 
 
 class GenreViewSet(CreateListDestroyViewSet):
@@ -41,22 +36,16 @@ class GenreViewSet(CreateListDestroyViewSet):
 
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    permission_classes = (IsAdminOrReadOnly,)
-    pagination_class = Pagination
-    lookup_field = 'slug'
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
 
 
 class TitleViewSet(GetPostPatchDeleteViewSet):
     """Viewset для произведений."""
-    queryset = Title.objects.all().annotate(Avg('reviews__score'))
+    queryset = Title.objects.annotate(
+        rating=Avg('reviews__score')).order_by('name')
     serializer_class = TitleReadSerializer
     permission_classes = (IsAdminOrReadOnly,)
-    pagination_class = Pagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleViewSetFilter
-    ordering_fields = ('name',)
 
     def get_serializer_class(self):
         if self.request.method in SAFE_METHODS:
@@ -68,7 +57,6 @@ class ReviewViewSet(GetPostPatchDeleteViewSet):
 
     serializer_class = ReviewSerializer
     permission_classes = (IsAuthorAdminModeratorOrReadOnly,)
-    pagination_class = Pagination
 
     def get_title(self):
         return get_object_or_404(Title, pk=self.kwargs['title_id'])
@@ -89,26 +77,21 @@ class ReviewViewSet(GetPostPatchDeleteViewSet):
 
         serializer.save(author=self.request.user, title=current_title)
 
-    def partial_update(self, request, *args, **kwargs):
-        instance = Review.objects.get(pk=kwargs['pk'])
-
-        self.check_object_permissions(self.request, instance)
-
-        serializer = self.serializer_class(instance, data=request.data,
-                                           partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data)
-
 
 class CommentViewSet(GetPostPatchDeleteViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
     permission_classes = (IsAuthorAdminModeratorOrReadOnly,)
-    pagination_class = Pagination
 
     def get_review(self):
         return get_object_or_404(Review, pk=self.kwargs['review_id'])
+
+    def get_title(self):
+        return get_object_or_404(Title, pk=self.kwargs['title_id'])
+
+    def get_queryset(self):
+        review = self.get_review()
+        return Comment.objects.filter(review=review)
 
     def perform_create(self, serializer):
         current_review = self.get_review()
@@ -124,7 +107,6 @@ class UserViewSet(GetPostPatchDeleteViewSet):
 
     filter_backends = (filters.SearchFilter,)
 
-    pagination_class = Pagination
     permission_classes = (IsAdminRole,)
     search_fields = ('username',)
 
@@ -143,8 +125,6 @@ class UserViewSet(GetPostPatchDeleteViewSet):
 
         serializer = UserSerializer(user, data=request.data, partial=True)
 
-        if serializer.is_valid():
+        if serializer.is_valid(raise_exception=True):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
