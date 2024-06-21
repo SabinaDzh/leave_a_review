@@ -93,9 +93,9 @@ class CommentViewSet(GetPostPatchDeleteViewSet):
         return get_object_or_404(Title, pk=self.kwargs['title_id'])
 
     def get_queryset(self):
-        title = self.get_title()
+        self.get_title()
         review = self.get_review()
-        return Comment.objects.filter(review=review, title=title)
+        return Comment.objects.filter(review=review)
 
     def perform_create(self, serializer):
         current_review = self.get_review()
