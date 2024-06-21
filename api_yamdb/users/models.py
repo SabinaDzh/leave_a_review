@@ -3,19 +3,9 @@ from django.db import models
 
 from users.constants import (
     MAX_LENGTH_EMAIL,
-    MAX_LENGTH_NAME,
-    ROLE_ADMIN_NAME,
-    ROLE_MODERATOR_NAME,
-    ROLE_USER_NAME)
+    MAX_LENGTH_NAME)
 from users.enums import UserRoles
 from users.validators import username_validator
-
-
-ROLES = [
-    (UserRoles.user.value, ROLE_USER_NAME),
-    (UserRoles.moderator.value, ROLE_MODERATOR_NAME),
-    (UserRoles.admin.value, ROLE_ADMIN_NAME)
-]
 
 
 class User(AbstractUser):
@@ -47,9 +37,9 @@ class User(AbstractUser):
     )
     role = models.CharField(
         verbose_name='Роль пользователя',
-        choices=ROLES,
-        default=UserRoles.user.value,
-        max_length=max([len(role_name) for role_name, _ in ROLES]),
+        choices=UserRoles.choices,
+        default=UserRoles.user,
+        max_length=max([len(role) for role, _ in UserRoles.choices]),
     )
 
     class Meta:
@@ -62,9 +52,9 @@ class User(AbstractUser):
 
     @property
     def is_admin(self):
-        return (self.role == UserRoles.admin.value
+        return (self.role == UserRoles.admin
                 or self.is_superuser or self.is_staff)
 
     @property
     def is_moderator(self):
-        return self.role == UserRoles.moderator.value
+        return self.role == UserRoles.moderator

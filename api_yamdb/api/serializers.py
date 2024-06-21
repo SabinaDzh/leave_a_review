@@ -80,28 +80,31 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
-    author = serializers.StringRelatedField(read_only=True)
+    author = serializers.SlugRelatedField(slug_field='username',
+                                          read_only=True)
 
     class Meta:
         model = Review
         fields = ('id', 'text', 'author', 'score', 'pub_date')
 
     def validate(self, data):
-        current_title = self.context['title']
 
-        if not self.instance and current_title:
-            review = Review.objects.filter(
-                author=self.context['request'].user,
-                title=current_title)
-            if review:
-                raise serializers.ValidationError(
-                    'Вы уже оставили отзыв для этого произведения!')
+        if self.context['request'].method != 'POST':
+            return data
+
+        review = Review.objects.filter(
+            author=self.context['request'].user,
+            title__id=self.context['title_id'])
+        if review:
+            raise serializers.ValidationError(
+                'Вы уже оставили отзыв для этого произведения!')
 
         return data
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    author = serializers.StringRelatedField(read_only=True)
+    author = serializers.SlugRelatedField(slug_field='username',
+                                          read_only=True)
 
     class Meta:
         model = Comment
