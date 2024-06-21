@@ -82,7 +82,7 @@ class ReviewViewSet(GetPostPatchDeleteViewSet):
 
 
 class CommentViewSet(GetPostPatchDeleteViewSet):
-    queryset = Comment.objects.all()
+
     serializer_class = CommentSerializer
     permission_classes = (IsAuthorAdminModeratorOrReadOnly,)
 
@@ -93,8 +93,9 @@ class CommentViewSet(GetPostPatchDeleteViewSet):
         return get_object_or_404(Title, pk=self.kwargs['title_id'])
 
     def get_queryset(self):
+        title = self.get_title()
         review = self.get_review()
-        return Comment.objects.filter(review=review)
+        return Comment.objects.filter(review=review, title=title)
 
     def perform_create(self, serializer):
         current_review = self.get_review()
