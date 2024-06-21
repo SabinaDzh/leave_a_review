@@ -4,11 +4,11 @@ from api.permissions import IsAdminOrReadOnly
 
 
 class CreateListDestroyViewSet(
-    mixins.CreateModelMixin,
-    mixins.ListModelMixin,
-    mixins.DestroyModelMixin,
-    viewsets.GenericViewSet
-):
+        mixins.CreateModelMixin,
+        mixins.ListModelMixin,
+        mixins.DestroyModelMixin,
+        viewsets.GenericViewSet
+        ):
     """Миксин для Category/Genre ViewSet."""
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = [filters.SearchFilter]

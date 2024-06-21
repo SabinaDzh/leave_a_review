@@ -1,7 +1,8 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 
-from reviews.models import Title, Category, Genre
+from reviews.models import Category, Comment, Genre, Review, Title
+
 
 User = get_user_model()
 
@@ -76,3 +77,32 @@ class UserSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'url': {'lookup_field': 'username'},
         }
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    author = serializers.StringRelatedField(read_only=True)
+
+    class Meta:
+        model = Review
+        fields = ('id', 'text', 'author', 'score', 'pub_date')
+
+    def validate(self, data):
+        current_title = self.context['title']
+
+        if not self.instance and current_title:
+            review = Review.objects.filter(
+                author=self.context['request'].user,
+                title=current_title)
+            if review:
+                raise serializers.ValidationError(
+                    'Вы уже оставили отзыв для этого произведения!')
+
+        return data
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    author = serializers.StringRelatedField(read_only=True)
+
+    class Meta:
+        model = Comment
+        fields = ('id', 'text', 'author', 'pub_date')

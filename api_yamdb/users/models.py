@@ -1,49 +1,43 @@
-from django.core.exceptions import ValidationError
-from django.core.validators import RegexValidator
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+from users.constants import (
+    MAX_LENGTH_EMAIL,
+    MAX_LENGTH_NAME,
+    ROLE_ADMIN_NAME,
+    ROLE_MODERATOR_NAME,
+    ROLE_USER_NAME)
+from users.enums import UserRoles
+from users.validators import username_validator
+
 
 ROLES = [
-    ('user', 'Пользователь'),
-    ('moderator', 'Модератор'),
-    ('admin', 'Администратор')
+    (UserRoles.user.value, ROLE_USER_NAME),
+    (UserRoles.moderator.value, ROLE_MODERATOR_NAME),
+    (UserRoles.admin.value, ROLE_ADMIN_NAME)
 ]
-
-username_validator = RegexValidator(
-    regex=r'^[\w.@+-]+\Z',
-)
-
-
-def username_me_validator(value):
-    if value == 'me':
-        raise ValidationError('Нельзя указать "me" в поле username!')
 
 
 class User(AbstractUser):
 
-    USER = "user"
-    MODERATOR = "moderator"
-    ADMIN = "admin"
-
     username = models.CharField(
-        max_length=150,
+        max_length=MAX_LENGTH_NAME,
         verbose_name='Ник пользователя',
         unique=True,
-        validators=[username_validator, username_me_validator],
+        validators=[username_validator,],
     )
     email = models.EmailField(
         verbose_name='Электронная почта',
-        max_length=254,
+        max_length=MAX_LENGTH_EMAIL,
         unique=True,
     )
     first_name = models.CharField(
         verbose_name='Имя пользователя',
-        max_length=150,
+        max_length=MAX_LENGTH_NAME,
         blank=True,
     )
     last_name = models.CharField(
-        max_length=150,
+        max_length=MAX_LENGTH_NAME,
         verbose_name='Фамилия пользователя',
         blank=True,
     )
@@ -54,26 +48,23 @@ class User(AbstractUser):
     role = models.CharField(
         verbose_name='Роль пользователя',
         choices=ROLES,
-        default=USER,
-        max_length=20,
+        default=UserRoles.user.value,
+        max_length=max([len(role_name) for role_name, _ in ROLES]),
     )
 
     class Meta:
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
-        ordering = ('id',)
+        ordering = ('username',)
 
     def __str__(self):
         return self.username
 
     @property
     def is_admin(self):
-        return self.role == self.ADMIN or self.is_superuser
+        return (self.role == UserRoles.admin.value
+                or self.is_superuser or self.is_staff)
 
     @property
     def is_moderator(self):
-        return self.role == self.MODERATOR
-
-    @property
-    def is_user(self):
-        return self.role == self.USER
+        return self.role == UserRoles.moderator.value

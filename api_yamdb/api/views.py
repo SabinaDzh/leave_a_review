@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from django.db.models import Avg
 from django_filters.rest_framework import DjangoFilterBackend
@@ -13,14 +14,17 @@ from api.permissions import (IsAdminOrReadOnly, IsAdminRole,
                              IsAuthorAdminModeratorOrReadOnly)
 from api.serializers import (
     CategorySerializer,
+    CommentSerializer,
     GenreSerializer,
+    ReviewSerializer,
     TitleReadSerializer,
     TitleWriteSerializer,
     UserSerializer
 )
 from reviews.models import Category, Comment, Genre, Review, Title
-from reviews.serializers import ReviewSerializer, CommentSerializer
-from users.models import User
+
+
+User = get_user_model()
 
 
 class CategoryViewSet(CreateListDestroyViewSet):
@@ -63,38 +67,31 @@ class ReviewViewSet(GetPostPatchDeleteViewSet):
     def get_queryset(self):
         return self.get_title().reviews.all()
 
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['title'] = self.get_title()
+        return context
+
     def perform_create(self, serializer):
         current_title = self.get_title()
-
-        if current_title:
-            review = Review.objects.filter(
-                author=self.request.user,
-                title=current_title)
-            if review:
-                raise serializers.ValidationError(
-                    'Вы уже оставили отзыв для этого произведения!')
-
         serializer.save(author=self.request.user, title=current_title)
-
-    def partial_update(self, request, *args, **kwargs):
-        instance = Review.objects.get(pk=kwargs['pk'])
-
-        self.check_object_permissions(self.request, instance)
-
-        serializer = self.serializer_class(instance, data=request.data,
-                                           partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data)
 
 
 class CommentViewSet(GetPostPatchDeleteViewSet):
-    queryset = Comment.objects.all()
+
     serializer_class = CommentSerializer
     permission_classes = (IsAuthorAdminModeratorOrReadOnly,)
 
     def get_review(self):
         return get_object_or_404(Review, pk=self.kwargs['review_id'])
+
+    def get_title(self):
+        return get_object_or_404(Title, pk=self.kwargs['title_id'])
+
+    def get_queryset(self):
+        self.get_title()
+        review = self.get_review()
+        return Comment.objects.filter(review=review)
 
     def perform_create(self, serializer):
         current_review = self.get_review()
@@ -122,14 +119,9 @@ class UserViewSet(GetPostPatchDeleteViewSet):
             serializer = self.get_serializer(user)
             return Response(serializer.data)
 
-        if 'role' in request.data and user.role != request.data['role']:
-            return Response(status=status.HTTP_400_BAD_REQUEST,
-                            data='Нельзя изменить роль пользователя!')
-
         serializer = UserSerializer(user, data=request.data, partial=True)
 
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        serializer.validated_data['role'] = user.role
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)

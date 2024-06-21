@@ -1,18 +1,25 @@
+from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainSerializer
 from rest_framework_simplejwt.tokens import AccessToken
 
 from auth.functions import generate_confirmation_code, send_confirmation_code
-from users.models import User, username_me_validator
+from users.constants import MAX_LENGTH_EMAIL, MAX_LENGTH_NAME
+from users.validators import username_validator
+
+
+User = get_user_model()
 
 
 class RegisterUserSerializer(serializers.Serializer):
     """Пользователь."""
 
-    username = serializers.RegexField(regex=r'^[\w.@+-]+\Z', max_length=150)
+    username = serializers.CharField(
+        max_length=MAX_LENGTH_NAME,
+        validators=[username_validator,])
     email = serializers.EmailField(
-        max_length=254,
+        max_length=MAX_LENGTH_EMAIL,
     )
 
     class Meta:
@@ -36,23 +43,16 @@ class RegisterUserSerializer(serializers.Serializer):
             message_template = (
                 'Пользователь с таким {field_name} уже существует!')
 
-            error_messages_dict = {
-                key: value for key, value in zip(
+            error_messages = {
+                key: [message_template.format(field_name=key)]
+                for key, value in zip(
                     ['username', 'email'],
-                    [user_same_username, user_same_email])
+                    [user_same_username, user_same_email]) if value
             }
-
-            error_messages = [
-                message_template.format(field_name=key)
-                for key, value in error_messages_dict.items() if value]
 
             raise serializers.ValidationError(error_messages)
 
         return super().validate(data)
-
-    def validate_username(self, data):
-        username_me_validator(data)
-        return data
 
 
 class ConfirmationCodeSerializer(TokenObtainSerializer):

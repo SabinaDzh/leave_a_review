@@ -1,51 +1,50 @@
+from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from users.models import User
 
-from reviews.constants import MAX_LENGTH_NAME, MAX_LENGTH_SLUG
+from reviews.constants import (
+    MAX_LENGTH_NAME,
+    MAX_LENGTH_SLUG,
+    VALIDATOR_MIN,
+    VALIDATOR_MAX)
 from reviews.validators import validate_year
 
 
-class Category(models.Model):
-    """Модель категории произведения."""
+User = get_user_model()
+
+
+class BaseCategoryGenre(models.Model):
+    """Абстрактная модель для категорий и жанров."""
     name = models.CharField(
-        verbose_name='Название категории',
+        verbose_name='Название',
         max_length=MAX_LENGTH_NAME,
     )
     slug = models.SlugField(
-        verbose_name='Слаг категории',
+        verbose_name='Слаг',
         max_length=MAX_LENGTH_SLUG,
         unique=True,
     )
 
+    class Meta:
+        abstract = True
+        ordering = ('name',)
+
     def __str__(self):
         return self.name
 
-    class Meta:
+
+class Category(BaseCategoryGenre):
+    """Модель категории произведения."""
+    class Meta(BaseCategoryGenre.Meta):
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
-        ordering = ('name',)
 
 
-class Genre(models.Model):
+class Genre(BaseCategoryGenre):
     """Модель жанра произведений."""
-    name = models.CharField(
-        verbose_name='Название жанра',
-        max_length=MAX_LENGTH_NAME,
-    )
-    slug = models.SlugField(
-        verbose_name='Слаг жанра',
-        max_length=MAX_LENGTH_SLUG,
-        unique=True,
-    )
-
-    def __str__(self):
-        return self.name
-
-    class Meta:
+    class Meta(BaseCategoryGenre.Meta):
         verbose_name = 'Жанр'
         verbose_name_plural = 'Жанры'
-        ordering = ('name',)
 
 
 class Title(models.Model):
@@ -61,7 +60,6 @@ class Title(models.Model):
     description = models.TextField(
         verbose_name='Описание произведения',
         blank=True,
-        null=True,
     )
     genre = models.ManyToManyField(
         Genre,
@@ -117,8 +115,8 @@ class Review(models.Model):
     text = models.TextField()
     score = models.PositiveSmallIntegerField(
         validators=[
-            MinValueValidator(1, 'Оценка не может быть меньше 1'),
-            MaxValueValidator(10, 'Оценка не может быть выше 10'),
+            MinValueValidator(VALIDATOR_MIN, 'Оценка не может быть меньше 1'),
+            MaxValueValidator(VALIDATOR_MAX, 'Оценка не может быть выше 10'),
         ],
         verbose_name='Рейтинг',
 
@@ -137,23 +135,6 @@ class Review(models.Model):
                 name='unique_title_author')
         ]
         ordering = ('-pub_date',)
-
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        self.update_title_rating()
-
-    def delete(self, *args, **kwargs):
-        super().delete(*args, **kwargs)
-        self.update_title_rating()
-
-    def update_title_rating(self):
-        average_rating = self.title.reviews.aggregate(
-            models.Avg('score'))['score__avg']
-        if average_rating is not None:
-            self.title.rating = round(average_rating)
-        else:
-            self.title.rating = None
-        self.title.save()
 
     def __str__(self):
         return f"Отзыв от {self.author} о {self.title}"
