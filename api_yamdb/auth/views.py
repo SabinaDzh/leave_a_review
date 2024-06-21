@@ -1,10 +1,13 @@
+from django.contrib.auth import get_user_model
 from rest_framework import permissions
 from rest_framework import status
 from rest_framework import views
 from rest_framework.response import Response
 
 from auth.serializers import ConfirmationCodeSerializer, RegisterUserSerializer
-from users.models import User
+
+
+User = get_user_model()
 
 
 class RegisterUserView(views.APIView):

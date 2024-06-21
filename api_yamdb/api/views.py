@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from django.db.models import Avg
 from django_filters.rest_framework import DjangoFilterBackend
@@ -21,7 +22,9 @@ from api.serializers import (
     UserSerializer
 )
 from reviews.models import Category, Comment, Genre, Review, Title
-from users.models import User
+
+
+User = get_user_model()
 
 
 class CategoryViewSet(CreateListDestroyViewSet):

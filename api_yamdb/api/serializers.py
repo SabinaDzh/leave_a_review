@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 
 from reviews.models import Category, Comment, Genre, Review, Title
 
+
 User = get_user_model()
 
 

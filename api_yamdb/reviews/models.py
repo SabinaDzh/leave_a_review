@@ -1,6 +1,6 @@
+from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from users.models import User
 
 from reviews.constants import (
     MAX_LENGTH_NAME,
@@ -8,6 +8,9 @@ from reviews.constants import (
     VALIDATOR_MIN,
     VALIDATOR_MAX)
 from reviews.validators import validate_year
+
+
+User = get_user_model()
 
 
 class BaseCategoryGenre(models.Model):

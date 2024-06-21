@@ -1,10 +1,14 @@
+from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainSerializer
 from rest_framework_simplejwt.tokens import AccessToken
 
 from auth.functions import generate_confirmation_code, send_confirmation_code
-from users.models import User, username_me_validator
+from users.models import username_me_validator
+
+
+User = get_user_model()
 
 
 class RegisterUserSerializer(serializers.Serializer):
