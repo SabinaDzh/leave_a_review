@@ -67,17 +67,13 @@ class ReviewViewSet(GetPostPatchDeleteViewSet):
     def get_queryset(self):
         return self.get_title().reviews.all()
 
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['title'] = self.get_title()
+        return context
+
     def perform_create(self, serializer):
         current_title = self.get_title()
-
-        if current_title:
-            review = Review.objects.filter(
-                author=self.request.user,
-                title=current_title)
-            if review:
-                raise serializers.ValidationError(
-                    'Вы уже оставили отзыв для этого произведения!')
-
         serializer.save(author=self.request.user, title=current_title)
 
 
