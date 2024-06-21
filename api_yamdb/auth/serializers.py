@@ -1,12 +1,12 @@
 from django.contrib.auth import get_user_model
-from django.core.validators import RegexValidator
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainSerializer
 from rest_framework_simplejwt.tokens import AccessToken
 
 from auth.functions import generate_confirmation_code, send_confirmation_code
-from users.models import username_me_validator
+from users.constants import MAX_LENGTH_EMAIL, MAX_LENGTH_NAME
+from users.validators import username_validator
 
 
 User = get_user_model()
@@ -16,14 +16,10 @@ class RegisterUserSerializer(serializers.Serializer):
     """Пользователь."""
 
     username = serializers.CharField(
-        max_length=150,
-        validators=[username_me_validator,
-                    RegexValidator(
-                        regex=r'^[\w.@+-]+\Z',
-                        message='Введите корректное значение в поле username'
-                    )])
+        max_length=MAX_LENGTH_NAME,
+        validators=[username_validator,])
     email = serializers.EmailField(
-        max_length=254,
+        max_length=MAX_LENGTH_EMAIL,
     )
 
     class Meta:
