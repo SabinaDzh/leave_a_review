@@ -32,15 +32,7 @@ class ConfirmationCodeView(views.APIView):
 
         serializer = self.serializer_class(data=request.data)
 
-        if serializer.is_valid():
-            user = User.objects.get(
-                username=serializer.validated_data['username'])
-            serializer.validated_data['token'] = (
-                str(serializer.get_token(user)))
-            del serializer.validated_data['username']
-            del serializer.validated_data['confirmation_code']
-            return Response(serializer.validated_data,
-                            status=status.HTTP_200_OK)
-
-        return Response(serializer.error_messages,
-                        status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        user = User.objects.get(username=serializer.validated_data['username'])
+        response_dict = {'token': str(serializer.get_token(user))}
+        return Response(response_dict, status=status.HTTP_200_OK)
