@@ -17,7 +17,7 @@ class RegisterUserSerializer(serializers.Serializer):
 
     username = serializers.CharField(
         max_length=MAX_LENGTH_NAME,
-        validators=[username_validator,])
+        validators=[username_validator, ])
     email = serializers.EmailField(
         max_length=MAX_LENGTH_EMAIL,
     )

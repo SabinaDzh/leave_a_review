@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from django.db.models import Avg
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, permissions, serializers, status
+from rest_framework import filters, permissions, status
 from rest_framework.decorators import action
 from rest_framework.permissions import (SAFE_METHODS)
 from rest_framework.response import Response
@@ -69,7 +69,7 @@ class ReviewViewSet(GetPostPatchDeleteViewSet):
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
-        context['title'] = self.get_title()
+        context['title_id'] = self.kwargs['title_id']
         return context
 
     def perform_create(self, serializer):
@@ -83,13 +83,10 @@ class CommentViewSet(GetPostPatchDeleteViewSet):
     permission_classes = (IsAuthorAdminModeratorOrReadOnly,)
 
     def get_review(self):
-        return get_object_or_404(Review, pk=self.kwargs['review_id'])
-
-    def get_title(self):
-        return get_object_or_404(Title, pk=self.kwargs['title_id'])
+        return get_object_or_404(Review, pk=self.kwargs['review_id'],
+                                 title_id=self.kwargs['title_id'])
 
     def get_queryset(self):
-        self.get_title()
         review = self.get_review()
         return Comment.objects.filter(review=review)
 
@@ -122,6 +119,5 @@ class UserViewSet(GetPostPatchDeleteViewSet):
         serializer = UserSerializer(user, data=request.data, partial=True)
 
         serializer.is_valid(raise_exception=True)
-        serializer.validated_data['role'] = user.role
-        serializer.save()
+        serializer.save(role=user.role)
         return Response(serializer.data, status=status.HTTP_200_OK)

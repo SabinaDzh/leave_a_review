@@ -1,6 +1,2 @@
 MAX_LENGTH_NAME = 150
 MAX_LENGTH_EMAIL = 254
-
-ROLE_ADMIN_NAME = 'Администратор'
-ROLE_MODERATOR_NAME = 'Модератор'
-ROLE_USER_NAME = 'Пользователь'
