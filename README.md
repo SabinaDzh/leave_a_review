@@ -19,9 +19,9 @@
 3. Устанавливаем необходимые зависимости из requirements
 `pip install -r requirements.txt`
 4. Делаем миграции
-`python api_yamdb/manage.py migrate`
+`python OpinionOrbit/manage.py migrate`
 5. Запускаем проект
-`python api_yamdb/manage.py runserver`
+`python OpinionOrbit/manage.py runserver`
 # Авторы
 * [Сабина Джавадова](https://github.com/SabinaDzh)
 * [Анна Синицына](https://github.com/asinitsyna111)
